@@ -60,7 +60,13 @@ func main() {
 				continue
 			}
 
-			if _, err = bot.ReplyMessage(event.ReplyToken, reply.New(event.Message).Message()).Do(); err != nil {
+			replyInstance := reply.New(event.Message)
+
+			if replyInstance == nil {
+				continue
+			}
+
+			if _, err := bot.ReplyMessage(event.ReplyToken, replyInstance.Message()).Do(); err != nil {
 				log.Println(err)
 			}
 		}
