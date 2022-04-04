@@ -18,7 +18,9 @@ type WeatherForecast struct {
 	LocationName string
 }
 
-func (self *WeatherForecast) Message() linebot.SendingMessage {
+func (self *WeatherForecast) Messages() []linebot.SendingMessage {
+	messages := []linebot.SendingMessage{}
+
 	resp, _ := self.getWeatherForecast()
 
 	locationData := resp.Records.Locations[0].Location[0]
@@ -30,7 +32,9 @@ func (self *WeatherForecast) Message() linebot.SendingMessage {
 		fmt.Sprint("ℹ️", locationData.WeatherElement[1].Time[0].ElementValue[0].Value),
 	}
 
-	return linebot.NewTextMessage(strings.Join(content, "\n"))
+	messages = append(messages, linebot.NewTextMessage(strings.Join(content, "\n")))
+
+	return messages
 }
 
 func (self *WeatherForecast) getWeatherForecast() (*WeatherForecastResp, error) {

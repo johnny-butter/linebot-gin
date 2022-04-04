@@ -66,7 +66,7 @@ func main() {
 				continue
 			}
 
-			if _, err := bot.ReplyMessage(event.ReplyToken, replyInstance.Message()).Do(); err != nil {
+			if _, err := bot.ReplyMessage(event.ReplyToken, replyInstance.Messages()...).Do(); err != nil {
 				log.Println(err)
 			}
 		}

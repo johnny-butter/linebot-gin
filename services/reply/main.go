@@ -7,7 +7,7 @@ import (
 )
 
 type ReplyMessage interface {
-	Message() linebot.SendingMessage
+	Messages() []linebot.SendingMessage
 }
 
 func New(msg linebot.Message) ReplyMessage {
