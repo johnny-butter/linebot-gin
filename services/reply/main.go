@@ -16,10 +16,11 @@ type MsgSource struct {
 	Id   string
 }
 
-func New(msg linebot.Message) ReplyMessage {
+func New(msg linebot.Message, msgSource MsgSource) ReplyMessage {
 	switch message := msg.(type) {
 	case *linebot.TextMessage:
 		weatherKeyword := "天氣"
+		findfoodKeyword := "找美食"
 
 		if strings.HasSuffix(message.Text, weatherKeyword) {
 			locationStr := strings.Replace(message.Text, weatherKeyword, "", -1)
@@ -28,6 +29,15 @@ func New(msg linebot.Message) ReplyMessage {
 			return &WeatherForecast{
 				CountyName:   string(locationRune[:3]),
 				LocationName: string(locationRune[3:]),
+			}
+		}
+
+		if strings.HasPrefix(message.Text, findfoodKeyword) {
+			splitedStr := strings.Split(message.Text, " ")
+
+			return &FindFood{
+				MsgSource: msgSource,
+				Keyword:   strings.TrimSpace(splitedStr[1]),
 			}
 		}
 
