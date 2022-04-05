@@ -1,6 +1,7 @@
 package reply
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
@@ -8,6 +9,11 @@ import (
 
 type ReplyMessage interface {
 	Messages() []linebot.SendingMessage
+}
+
+type MsgSource struct {
+	Type linebot.EventSourceType
+	Id   string
 }
 
 func New(msg linebot.Message) ReplyMessage {
@@ -31,6 +37,11 @@ func New(msg linebot.Message) ReplyMessage {
 			PackageId:    "8525",
 			MinStickerId: 16581290,
 			MaxStickerId: 16581313,
+		}
+	case *linebot.LocationMessage:
+		return &SaveLocation{
+			MsgSource: msgSource,
+			Location:  fmt.Sprint(message.Latitude, ",", message.Longitude),
 		}
 	default:
 		return nil

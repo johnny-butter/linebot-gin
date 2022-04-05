@@ -60,7 +60,19 @@ func main() {
 				continue
 			}
 
-			replyInstance := reply.New(event.Message)
+			msgSource := &reply.MsgSource{Type: event.Source.Type}
+
+			switch msgSource.Type {
+			case linebot.EventSourceTypeUser:
+				msgSource.Id = event.Source.UserID
+			case linebot.EventSourceTypeGroup:
+				msgSource.Id = event.Source.GroupID
+			default:
+				log.Println(fmt.Sprint("\"", event.Source.Type, "\" not match"))
+				continue
+			}
+
+			replyInstance := reply.New(event.Message, *msgSource)
 
 			if replyInstance == nil {
 				continue
