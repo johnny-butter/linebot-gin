@@ -3,13 +3,12 @@ package reply
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	"linebot-gin/services/requests"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -19,7 +18,9 @@ type WeatherForecast struct {
 	LocationName string
 }
 
-func (self *WeatherForecast) Message() linebot.SendingMessage {
+func (self *WeatherForecast) Messages() []linebot.SendingMessage {
+	messages := []linebot.SendingMessage{}
+
 	resp, _ := self.getWeatherForecast()
 
 	locationData := resp.Records.Locations[0].Location[0]
@@ -31,43 +32,33 @@ func (self *WeatherForecast) Message() linebot.SendingMessage {
 		fmt.Sprint("ℹ️", locationData.WeatherElement[1].Time[0].ElementValue[0].Value),
 	}
 
-	return linebot.NewTextMessage(strings.Join(content, "\n"))
+	messages = append(messages, linebot.NewTextMessage(strings.Join(content, "\n")))
+
+	return messages
 }
 
 func (self *WeatherForecast) getWeatherForecast() (*WeatherForecastResp, error) {
-	endpoint, err := url.Parse("https://opendata.cwb.gov.tw/api/v1/rest/datastore/" + CountyNameCwbIdMapping[self.CountyName])
-	if err != nil {
-		log.Println(err)
-		return new(WeatherForecastResp), err
-	}
-
 	tw, _ := time.LoadLocation("Asia/Taipei")
 	current := time.Now().In(tw)
 	current3 := current.Add(time.Hour * 3)
 
-	values := url.Values{}
-	values.Add("Authorization", os.Getenv("CWB_AUTH_CODE"))
-	values.Add("elementName", "AT,WeatherDescription")
-	values.Add("locationName", self.LocationName)
-	values.Add("timeFrom", current.Format("2006-01-02T15:04:05"))
-	values.Add("timeTo", current3.Format("2006-01-02T15:04:05"))
-
-	endpoint.RawQuery = values.Encode()
-
-	resp, err := http.Get(endpoint.String())
-	if err != nil {
-		log.Println(err)
-		return new(WeatherForecastResp), err
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
+	resp, err := requests.Get(
+		"https://opendata.cwb.gov.tw/api/v1/rest/datastore/"+CountyNameCwbIdMapping[self.CountyName],
+		map[string]string{
+			"Authorization": os.Getenv("CWB_AUTH_CODE"),
+			"elementName":   "AT,WeatherDescription",
+			"locationName":  self.LocationName,
+			"timeFrom":      current.Format("2006-01-02T15:04:05"),
+			"timeTo":        current3.Format("2006-01-02T15:04:05"),
+		},
+	)
 	if err != nil {
 		log.Println(err)
 		return new(WeatherForecastResp), err
 	}
 
 	var ret WeatherForecastResp
-	if err := json.Unmarshal(body, &ret); err != nil {
+	if err := json.Unmarshal(resp, &ret); err != nil {
 		log.Println(err)
 		return new(WeatherForecastResp), err
 	}

@@ -3,6 +3,7 @@ package reply
 import (
 	"math/rand"
 	"strconv"
+	"time"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -14,8 +15,13 @@ type RandomSticker struct {
 	MaxStickerId int
 }
 
-func (self *RandomSticker) Message() linebot.SendingMessage {
+func (self *RandomSticker) Messages() []linebot.SendingMessage {
+	messages := []linebot.SendingMessage{}
+
+	rand.Seed(time.Now().Unix())
 	stickerId := rand.Intn(self.MaxStickerId-self.MinStickerId) + self.MinStickerId
 
-	return linebot.NewStickerMessage(self.PackageId, strconv.Itoa(stickerId))
+	messages = append(messages, linebot.NewStickerMessage(self.PackageId, strconv.Itoa(stickerId)))
+
+	return messages
 }
