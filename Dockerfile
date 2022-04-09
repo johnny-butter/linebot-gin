@@ -11,8 +11,11 @@ WORKDIR /app
 RUN apk --no-cache add curl
 
 RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
 COPY ./makemigrate.sh .
 RUN chmod +x makemigrate.sh
+
+COPY ./models/migrations ./models/migrations
 
 COPY --from=builder /app/bot .
 
