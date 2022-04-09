@@ -8,9 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"linebot-gin/models"
 	"linebot-gin/services/requests"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"gorm.io/gorm"
 )
 
 type WeatherForecast struct {
@@ -21,35 +23,51 @@ type WeatherForecast struct {
 func (self *WeatherForecast) Messages() []linebot.SendingMessage {
 	messages := []linebot.SendingMessage{}
 
-	resp, _ := self.getWeatherForecast()
+	resp, err := self.getWeatherForecast()
+
+	if err == gorm.ErrRecordNotFound {
+		messages = append(messages, linebot.NewTextMessage(fmt.Sprint("無 \"", self.CountyName, self.LocationName, "\" 資料")))
+		return messages
+	}
 
 	locationData := resp.Records.Locations[0].Location[0]
 
 	content := []string{
-		fmt.Sprint("⚓", locationData.LocationName, "@", resp.Records.Locations[0].LocationsName),
-		fmt.Sprint("⌚", locationData.WeatherElement[1].Time[0].StartTime, "~", locationData.WeatherElement[1].Time[0].EndTime),
-		fmt.Sprint("🌡️體感溫度: ", locationData.WeatherElement[0].Time[0].ElementValue[0].Value, locationData.WeatherElement[0].Time[0].ElementValue[0].Measures),
-		fmt.Sprint("ℹ️", locationData.WeatherElement[1].Time[0].ElementValue[0].Value),
+		fmt.Sprint(locationData.LocationName, "@", resp.Records.Locations[0].LocationsName),
+		fmt.Sprint("⌚", locationData.WeatherElement[1].Time[0].StartTime[5:16], "~", locationData.WeatherElement[1].Time[0].EndTime[5:16]),
+		fmt.Sprint("🌡️體感: ", locationData.WeatherElement[0].Time[0].ElementValue[0].Value, locationData.WeatherElement[0].Time[0].ElementValue[0].Measures),
 	}
 
 	messages = append(messages, linebot.NewTextMessage(strings.Join(content, "\n")))
+	messages = append(messages, linebot.NewTextMessage(fmt.Sprint("ℹ️", locationData.WeatherElement[1].Time[0].ElementValue[0].Value)))
 
 	return messages
 }
 
 func (self *WeatherForecast) getWeatherForecast() (*WeatherForecastResp, error) {
+	var county models.County
+	qResult := models.DB.Debug().Model(&models.County{}).
+		Joins("JOIN district ON county.id = district.county_id AND district.name = ?", self.LocationName).
+		First(&county, "county.name = ?", self.CountyName)
+
+	if qResult.Error != nil {
+		log.Println(qResult.Error)
+		return new(WeatherForecastResp), qResult.Error
+	}
+
 	tw, _ := time.LoadLocation("Asia/Taipei")
 	current := time.Now().In(tw)
-	current3 := current.Add(time.Hour * 3)
+	currentPlus3 := current.Add(time.Hour * 3)
+	timeLayout := "2006-01-02T15:04:05"
 
 	resp, err := requests.Get(
-		"https://opendata.cwb.gov.tw/api/v1/rest/datastore/"+CountyNameCwbIdMapping[self.CountyName],
+		"https://opendata.cwb.gov.tw/api/v1/rest/datastore/"+county.CwbId,
 		map[string]string{
 			"Authorization": os.Getenv("CWB_AUTH_CODE"),
 			"elementName":   "AT,WeatherDescription",
 			"locationName":  self.LocationName,
-			"timeFrom":      current.Format("2006-01-02T15:04:05"),
-			"timeTo":        current3.Format("2006-01-02T15:04:05"),
+			"timeFrom":      current.Format(timeLayout),
+			"timeTo":        currentPlus3.Format(timeLayout),
 		},
 	)
 	if err != nil {
@@ -64,36 +82,6 @@ func (self *WeatherForecast) getWeatherForecast() (*WeatherForecastResp, error) 
 	}
 
 	return &ret, nil
-}
-
-// https://opendata.cwb.gov.tw/opendatadoc/CWB_Opendata_API_V1.2.pdf
-var CountyNameCwbIdMapping = map[string]string{
-	"宜蘭縣": "F-D0047-001",
-	"桃園市": "F-D0047-005",
-	"新竹縣": "F-D0047-009",
-	"苗栗縣": "F-D0047-013",
-	"彰化縣": "F-D0047-017",
-	"南投縣": "F-D0047-021",
-	"雲林縣": "F-D0047-025",
-	"嘉義縣": "F-D0047-029",
-	"屏東縣": "F-D0047-033",
-	"臺東縣": "F-D0047-037",
-	"台東縣": "F-D0047-037",
-	"花蓮縣": "F-D0047-041",
-	"澎湖縣": "F-D0047-045",
-	"基隆市": "F-D0047-049",
-	"新竹市": "F-D0047-053",
-	"嘉義市": "F-D0047-057",
-	"臺北市": "F-D0047-061",
-	"台北市": "F-D0047-061",
-	"高雄市": "F-D0047-065",
-	"新北市": "F-D0047-069",
-	"臺中市": "F-D0047-073",
-	"台中市": "F-D0047-073",
-	"臺南市": "F-D0047-077",
-	"台南市": "F-D0047-077",
-	"連江縣": "F-D0047-081",
-	"金門縣": "F-D0047-085",
 }
 
 type WeatherForecastResp struct {
