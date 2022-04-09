@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"linebot-gin/models"
 	"linebot-gin/services/reply"
 	"log"
 	"net/http"
@@ -24,6 +25,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	models.ConnectDB()
 
 	router := gin.Default()
 
