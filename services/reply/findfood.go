@@ -18,6 +18,13 @@ type FindFood struct {
 	Keyword   string
 }
 
+func (self *FindFood) New(param string, msgSource MsgSource) ReplyMessage {
+	self.Keyword = param
+	self.MsgSource = msgSource
+
+	return self
+}
+
 func (self *FindFood) Messages() []linebot.SendingMessage {
 	messages := []linebot.SendingMessage{}
 

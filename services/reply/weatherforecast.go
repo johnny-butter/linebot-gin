@@ -17,7 +17,23 @@ import (
 
 type WeatherForecast struct {
 	CountyName   string
-	LocationName string
+	DistrictName string
+}
+
+func (self *WeatherForecast) New(param string, _ MsgSource) ReplyMessage {
+	params := strings.Split(param, " ")
+
+	if len(params) < 2 {
+		runes := []rune(params[0])
+
+		self.CountyName = string(runes[:3])
+		self.DistrictName = string(runes[3:])
+	} else {
+		self.CountyName = params[0]
+		self.DistrictName = params[1]
+	}
+
+	return self
 }
 
 func (self *WeatherForecast) Messages() []linebot.SendingMessage {
@@ -26,7 +42,7 @@ func (self *WeatherForecast) Messages() []linebot.SendingMessage {
 	resp, err := self.getWeatherForecast()
 
 	if err == gorm.ErrRecordNotFound {
-		messages = append(messages, linebot.NewTextMessage(fmt.Sprint("無 \"", self.CountyName, self.LocationName, "\" 資料")))
+		messages = append(messages, linebot.NewTextMessage(fmt.Sprint("無 \"", self.CountyName, self.DistrictName, "\" 資料")))
 		return messages
 	}
 
@@ -47,7 +63,7 @@ func (self *WeatherForecast) Messages() []linebot.SendingMessage {
 func (self *WeatherForecast) getWeatherForecast() (*WeatherForecastResp, error) {
 	var county models.County
 	qResult := models.DB.Debug().Model(&models.County{}).
-		Joins("JOIN district ON county.id = district.county_id AND district.name = ?", self.LocationName).
+		Joins("JOIN district ON county.id = district.county_id AND district.name = ?", self.DistrictName).
 		First(&county, "county.name = ?", self.CountyName)
 
 	if qResult.Error != nil {
@@ -65,7 +81,7 @@ func (self *WeatherForecast) getWeatherForecast() (*WeatherForecastResp, error) 
 		map[string]string{
 			"Authorization": os.Getenv("CWB_AUTH_CODE"),
 			"elementName":   "AT,WeatherDescription",
-			"locationName":  self.LocationName,
+			"locationName":  self.DistrictName,
 			"timeFrom":      current.Format(timeLayout),
 			"timeTo":        currentPlus3.Format(timeLayout),
 		},
