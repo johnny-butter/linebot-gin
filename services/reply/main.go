@@ -26,6 +26,7 @@ type MsgSource struct {
 var strStructMap = map[string]KeywordReplyMessage{
 	"WeatherForecast": &WeatherForecast{},
 	"FindFood":        &FindFood{},
+	"Skill":           &Skill{},
 }
 
 func New(msg linebot.Message, msgSource MsgSource) ReplyMessage {
