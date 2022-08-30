@@ -26,6 +26,7 @@ type MsgSource struct {
 var strStructMap = map[string]KeywordReplyMessage{
 	"WeatherForecast": &WeatherForecast{},
 	"FindFood":        &FindFood{},
+	"FoodAnalyze":     &FoodAnalyze{},
 	"Skill":           &Skill{},
 }
 
