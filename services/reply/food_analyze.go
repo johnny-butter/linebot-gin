@@ -23,7 +23,7 @@ func (self *FoodAnalyze) Messages() []linebot.SendingMessage {
 	messages := []linebot.SendingMessage{}
 
 	cantFindMsg := linebot.NewTextMessage(fmt.Sprint("找不到\"", self.FoodName, "\" $")).
-		AddEmoji(linebot.NewEmoji(len(self.FoodName)+6, "5ac22a8c031a6752fb806d66", "027"))
+		AddEmoji(linebot.NewEmoji(utf8.RuneCountInString(self.FoodName)+6, "5ac22a8c031a6752fb806d66", "027"))
 
 	var content []string
 
@@ -52,7 +52,7 @@ func (self *FoodAnalyze) Messages() []linebot.SendingMessage {
 		return messages
 	}
 
-	content = append(content, fmt.Sprint("營養(每 100 克):"))
+	content = append(content, fmt.Sprint("營養成分 (每 100 克):"))
 
 	for _, foodIngredient := range foodIngredients {
 		content = append(content, fmt.Sprint(foodIngredient.Name, " => ", foodIngredient.Amount))
