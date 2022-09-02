@@ -15,6 +15,9 @@ RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate
 COPY ./makemigrate.sh .
 RUN chmod +x makemigrate.sh
 
+COPY ./push_messages.sh .
+RUN chmod +x push_messages.sh
+
 COPY ./models/migrations ./models/migrations
 
 COPY --from=builder /app/bot .
