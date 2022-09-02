@@ -10,6 +10,8 @@ WORKDIR /app
 # for Heroku release phase logging
 RUN apk --no-cache add curl
 
+RUN apk --no-cache add --upgrade bash
+
 RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 COPY ./makemigrate.sh .
