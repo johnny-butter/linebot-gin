@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"gorm.io/gorm"
 )
 
 type FoodAnalyze struct {
@@ -32,6 +33,18 @@ func (self *FoodAnalyze) Messages() []linebot.SendingMessage {
 	qResult := models.DB.Debug().Model(&models.Food{}).
 		Where("name = ?", self.FoodName).
 		First(&food)
+
+	if qResult.Error == gorm.ErrRecordNotFound {
+		qResult = models.DB.Debug().Model(&models.Food{}).
+			Where("name LIKE ?", "%"+self.FoodName+"%").
+			First(&food)
+
+		if qResult.Error == gorm.ErrRecordNotFound {
+			qResult = models.DB.Debug().Model(&models.Food{}).
+				Where("common_names LIKE ?", "%"+self.FoodName+"%").
+				First(&food)
+		}
+	}
 
 	if qResult.Error != nil {
 		log.Println(qResult.Error)
