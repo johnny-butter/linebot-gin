@@ -28,15 +28,15 @@ with open(DATA_FILE_NAME, 'r', encoding='utf-8') as f:
     next(reader)
 
     for rows in reader:
-        if not out_dict.get(rows[2]):
-            out_dict[rows[2]] = {}
-            out_dict[rows[2]]['amount_per_100g'] = {}
+        if not out_dict.get(rows[3]):
+            out_dict[rows[3]] = {}
+            out_dict[rows[3]]['amount_per_100g'] = {}
 
-            out_dict[rows[2]]['name'] = rows[2]
-            out_dict[rows[2]]['common_names'] = rows[4]
-            out_dict[rows[2]]['eng_name'] = rows[5]
-            out_dict[rows[2]]['category'] = rows[0]
-            out_dict[rows[2]]['code'] = rows[2]
+            out_dict[rows[3]]['name'] = rows[3]
+            out_dict[rows[3]]['common_names'] = rows[4]
+            out_dict[rows[3]]['eng_name'] = rows[5]
+            out_dict[rows[3]]['category'] = rows[0]
+            out_dict[rows[3]]['code'] = rows[2]
 
         try:
             if rows[9] not in ingredients:
@@ -46,7 +46,7 @@ with open(DATA_FILE_NAME, 'r', encoding='utf-8') as f:
             if amount_val == 0:
                 continue
 
-            out_dict[rows[2]]['amount_per_100g'][rows[9]] = f'{amount_val} {rows[10]}'
+            out_dict[rows[3]]['amount_per_100g'][rows[9]] = f'{amount_val} {rows[10]}'
         except Exception as e:
             print(str(e), rows)
 
