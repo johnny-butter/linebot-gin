@@ -24,4 +24,9 @@ COPY ./models/migrations ./models/migrations
 
 COPY --from=builder /app/bot .
 
-CMD [ "./bot" ]
+# download the secure tunnel startup script from the borealis/postgres-ssh buildpack
+RUN wget https://raw.githubusercontent.com/OldSneerJaw/heroku-buildpack-borealis-pg-ssh/main/profile.d/borealis-pg-init-ssh-tunnel.sh && \
+  chmod u+x borealis-pg-init-ssh-tunnel.sh
+
+# set the command that establishes the SSH tunnel and launches the app when the container starts
+CMD ./borealis-pg-init-ssh-tunnel.sh && ./bot
