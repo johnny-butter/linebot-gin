@@ -20,6 +20,9 @@ RUN chmod +x makemigrate.sh
 COPY ./push_messages.sh .
 RUN chmod +x push_messages.sh
 
+COPY ./heroku_release.sh .
+RUN chmod +x heroku_release.sh
+
 COPY ./models/migrations ./models/migrations
 
 COPY --from=builder /app/bot .

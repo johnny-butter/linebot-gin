@@ -5,4 +5,4 @@ build:
 release:
   image: web
   command:
-    - ./borealis-pg-init-ssh-tunnel.sh && ./makemigrate.sh up
+    - ./heroku_release.sh
