@@ -31,7 +31,7 @@ func (self *FindFood) Messages() []linebot.SendingMessage {
 	cacheKey := fmt.Sprint(self.MsgSource.Type, ":", self.MsgSource.Id, ":location")
 	location := self.getLocation(cacheKey)
 	if len(location) == 0 {
-		messages = append(messages, linebot.NewTextMessage("你在哪兒呢? $").AddEmoji(linebot.NewEmoji(7, "5ac22a8c031a6752fb806d66", "030")))
+		messages = append(messages, linebot.NewTextMessage("你在哪兒呢? $ (請傳送\"位置訊息\"至聊天室)").AddEmoji(linebot.NewEmoji(7, "5ac22a8c031a6752fb806d66", "030")))
 		return messages
 	}
 
